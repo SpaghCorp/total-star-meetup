@@ -31,13 +31,18 @@
 
   function norm(name) { return String(name).trim().toLowerCase(); }
 
-  function rgb(arr, fallback) {
-    if (Array.isArray(arr) && arr.length >= 3) {
-      // Coerce to 0–255 integers so nothing from the API can leak into the inline style.
-      var c = arr.slice(0, 3).map(function (n) { n = Math.round(+n); return (n >= 0 && n <= 255) ? n : 0; });
-      return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
-    }
-    return fallback;
+  // GDBrowser returns colours as {r,g,b} objects (older data used [r,g,b] arrays) — accept both.
+  function toRGB(c) {
+    if (Array.isArray(c) && c.length >= 3) return [c[0], c[1], c[2]];
+    if (c && typeof c === 'object' && typeof c.r === 'number') return [c.r, c.g, c.b];
+    return null;
+  }
+  function rgb(color, fallback) {
+    var a = toRGB(color);
+    if (!a) return fallback;
+    // Coerce to 0–255 integers so nothing from the API can leak into the inline style.
+    var c = a.map(function (n) { n = Math.round(+n); return (n >= 0 && n <= 255) ? n : 0; });
+    return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
   }
 
   function iconSvg(id, cls) {
@@ -301,7 +306,10 @@
     refs.empty.hidden = true;
 
     var frag = document.createDocumentFragment();
-    orderedForDisplay().forEach(function (e) { frag.appendChild(renderCard(e)); });
+    orderedForDisplay().forEach(function (e) {
+      try { frag.appendChild(renderCard(e)); }
+      catch (err) { /* one bad card must never stall the whole render / fetch queue */ }
+    });
     refs.roster.innerHTML = '';
     refs.roster.appendChild(frag);
 

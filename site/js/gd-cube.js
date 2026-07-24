@@ -22,15 +22,22 @@
   function clamp(n) { n = Math.round(+n); return isNaN(n) ? 0 : n < 0 ? 0 : n > 255 ? 255 : n; }
   function isBlack(c) { return c[0] === 0 && c[1] === 0 && c[2] === 0; }
 
-  function normColor(a, fb) {
-    if (!Array.isArray(a) || a.length < 3) return fb;
-    return [clamp(a[0]), clamp(a[1]), clamp(a[2])];
+  // GDBrowser returns colours as {r,g,b} objects (older data used [r,g,b] arrays) — accept both.
+  function toRGB(c) {
+    if (Array.isArray(c) && c.length >= 3) return [c[0], c[1], c[2]];
+    if (c && typeof c === 'object' && typeof c.r === 'number') return [c.r, c.g, c.b];
+    return null;
+  }
+  function normColor(c, fb) {
+    var a = toRGB(c);
+    return a ? [clamp(a[0]), clamp(a[1]), clamp(a[2])] : fb;
   }
   // GDBrowser's getGlowColor: glow uses colour 2, or colour 1 if 2 is black, or white if both are.
   function glowColor(c1, c2) { var g = !isBlack(c2) ? c2 : c1; return isBlack(g) ? [255, 255, 255] : g; }
 
+  function ckey(c) { var a = toRGB(c); return a ? a.join('.') : ''; }
   function key(p) {
-    return [p.icon, (p.col1RGB || []).join('.'), (p.col2RGB || []).join('.'), p.glow ? 1 : 0].join('|');
+    return [p.icon, ckey(p.col1RGB), ckey(p.col2RGB), p.glow ? 1 : 0].join('|');
   }
   function off(name) { return OFFSETS[name] || [0, 0]; }
 

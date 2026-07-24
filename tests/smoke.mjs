@@ -18,13 +18,14 @@ import { chromium } from 'playwright';
 
 const SITE_DIR = fileURLToPath(new URL('../site/', import.meta.url));
 
+// NB: GDBrowser returns colours as {r,g,b} objects — fixtures mirror that real shape.
 const FIXTURES = {
   robtop: { username: 'RobTop', playerID: 16, accountID: 71, rank: 0,
     stars: 100, moons: 5, diamonds: 20, coins: 0, userCoins: 10, demons: 2, cp: 14,
-    col1RGB: [125, 255, 0], col2RGB: [0, 255, 255], glow: false },
+    col1RGB: { r: 125, g: 255, b: 0 }, col2RGB: { r: 0, g: 255, b: 255 }, glow: false },
   viprin: { username: 'Viprin', playerID: 1030, accountID: 1030, rank: 0,
     stars: 200, moons: 3, diamonds: 30, coins: 4, userCoins: 20, demons: 8, cp: 200,
-    col1RGB: [255, 0, 128], col2RGB: [255, 255, 0], glow: true },
+    col1RGB: { r: 255, g: 0, b: 128 }, col2RGB: { r: 255, g: 255, b: 0 }, glow: true },
 };
 
 const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',
@@ -76,6 +77,10 @@ async function main() {
   let apiCalls = 0;
   try {
     const page = await browser.newPage();
+
+    // Fail loudly on any uncaught page error (this would have caught the col1RGB .join crash).
+    const pageErrors = [];
+    page.on('pageerror', (e) => pageErrors.push(e.message || String(e)));
 
     // Keep the test hermetic: no real fonts, no real API.
     await page.route('**/fonts.g*/**', (r) => r.abort());
@@ -137,6 +142,8 @@ async function main() {
       document.querySelector('#totals [data-key="stars"]')?.textContent === '100', null, { timeout: 15000 });
     assert((await total(page, 'stars')) === '100', 'Roster + totals restored after reload');
     assert(apiCalls === callsBefore, 'Reload made ZERO new API calls (served from cache)');
+
+    assert(pageErrors.length === 0, 'No uncaught page errors (got: ' + pageErrors.join(' | ') + ')');
 
     console.log(`\nAll ${passed} assertions passed ⭐`);
   } finally {
