@@ -329,6 +329,12 @@ a.card__name:hover, a.card__name:focus-visible { color: var(--brand); text-decor
   color: #fff; font-family: var(--display); font-size: 1.4rem;
 }
 .cube.is-glow { box-shadow: inset 0 0 0 5px var(--c2), 0 0 16px 3px var(--c2); }
+/* real rendered GD icon: drop the CSS-cube styling, just show the image */
+.cube--real { background: none; border: none; box-shadow: none; overflow: visible; }
+.cube--real .cube__img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+}
 .cube__eye {
   width: 8px; height: 11px; border-radius: 3px;
   background: #fff; border: 2px solid rgba(0, 0, 0, 0.65);

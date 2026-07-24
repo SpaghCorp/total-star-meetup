@@ -62,6 +62,10 @@ Tasks are grouped by phase and user story. `[P]` marks tasks that can run in par
 - [x] T017 [US2] Sort the squad by global rank (best first, unranked last), tie-broken by stars
   descending; display-only, totals unaffected (FR-016).
 - [x] T018 [US2] Link each username to its GDBrowser profile (`/u/{username}`) in a new tab (FR-017).
+- [x] T019 [US2] Render each player's real GD cube: load GDColon's sprite layers (col1/col2/glow/extra)
+  from the GDBrowser repo via CORS-enabled GitHub raw, tint to the player's colors and composite with
+  the plist offsets on a canvas; cache results and fall back to the CSS cube on any miss (FR-018).
+  Offsets vendored in `site/js/cube-offsets.js`; renderer in `site/js/gd-cube.js`.
 
 ## Dependencies
 

@@ -304,9 +304,25 @@
     orderedForDisplay().forEach(function (e) { frag.appendChild(renderCard(e)); });
     refs.roster.innerHTML = '';
     refs.roster.appendChild(frag);
+
+    // Upgrade each cube to the player's real GD icon (async; falls back to the CSS cube).
+    if (GDTSM.cube) {
+      var byKey = {};
+      roster.forEach(function (e) { if (e.status === 'ok' && e.profile) byKey[e.key] = e.profile; });
+      var cards = refs.roster.querySelectorAll('.card');
+      for (var i = 0; i < cards.length; i++) {
+        var prof = byKey[cards[i].getAttribute('data-key')];
+        var cubeEl = cards[i].querySelector('.cube');
+        if (prof && cubeEl) GDTSM.cube.enhanceEl(cubeEl, prof);
+      }
+    }
   }
 
   function cube(profile) {
+    // If the real GD cube is already rendered/cached, show it immediately (no flash on re-render).
+    var real = GDTSM.cube && GDTSM.cube.cached(profile);
+    if (real) return '<span class="cube cube--real"><img class="cube__img" alt="" src="' + real + '"></span>';
+
     var c1 = rgb(profile && profile.col1RGB, '#4dd0ff');
     var c2 = rgb(profile && profile.col2RGB, '#ffffff');
     var glow = profile && profile.glow ? ' is-glow' : '';

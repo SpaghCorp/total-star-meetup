@@ -8,6 +8,10 @@ GDTSM.config = {
   // GDColon's GDBrowser public API. Data source + credit: https://gdbrowser.com
   API_BASE: 'https://gdbrowser.com',
 
+  // GDColon's icon sprite layers, served with CORS via GitHub raw (used to draw real cubes).
+  // (jsDelivr — https://cdn.jsdelivr.net/gh/GDColon/GDBrowser@master/iconkit/icons/ — is a CDN alternative.)
+  ICON_BASE: 'https://raw.githubusercontent.com/GDColon/GDBrowser/master/iconkit/icons/',
+
   // How long a fetched profile stays fresh in localStorage before we refetch.
   CACHE_TTL_MS: 15 * 60 * 1000, // 15 minutes
 

@@ -116,6 +116,9 @@ without re-fetching (served from cache); use a Refresh action to force fresh dat
   (best/lowest rank first), then unranked players by stars (descending). Ordering never affects totals.
 - **FR-017**: Clicking a player's username MUST open that player's GDBrowser profile
   (`/u/{username}`) in a new browser tab.
+- **FR-018**: Each player's card SHOULD show that player's actual Geometry Dash cube icon,
+  rendered from GDColon's icon sprite layers tinted to the player's real colours (glow included),
+  with a graceful fallback to the colour-accurate stylised cube when the icon isn't available.
 
 ### Key Entities
 
@@ -148,8 +151,10 @@ without re-fetching (served from cache); use a Refresh action to force fresh dat
   as a public API). The tool degrades gracefully if it is temporarily unavailable.
 - "Total stats" means the arithmetic sum of countable stats. Global **rank** is a ranking,
   not a countable quantity, so it is shown per player but not summed.
-- Icon rendering is approximated with a colored cube built from the player's returned colors;
-  pixel-accurate in-game icon sprites are out of scope for v1.
+- Player cubes are rendered from GDColon's actual icon sprite layers (loaded cross-origin from
+  the GDBrowser repository, which serves them with permissive CORS) and tinted to each player's
+  colors on a canvas; this deliberately relaxes the "no external images" default for fidelity.
+  A stylized color-accurate cube is used as a fallback when an icon isn't available as layers.
 - Modern evergreen browsers (Chromium, Firefox, Safari) with `fetch` and `localStorage`.
 - The roster is a modest size (a "meetup" — up to a few dozen players), fetched sequentially
   to stay gentle on the API.
