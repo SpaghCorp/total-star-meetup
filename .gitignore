@@ -1,0 +1,13 @@
+# dependencies (dev-only tooling for the smoke test)
+node_modules/
+package-lock.json
+
+# os / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+
+# test artifacts
+test-results/
+playwright-report/
+/tmp-*

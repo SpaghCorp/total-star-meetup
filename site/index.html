@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Total Star Meetup — Geometry Dash group stats</title>
+  <meta name="description" content="Add Geometry Dash players by username and tally the whole squad's combined stars, moons, diamonds, coins, demons and creator points. Data from GDBrowser by GDColon." />
+  <meta name="color-scheme" content="dark" />
+
+  <meta property="og:title" content="Total Star Meetup" />
+  <meta property="og:description" content="Tally the combined Geometry Dash stats of a group of players." />
+  <meta property="og:type" content="website" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23ffd23f'/%3E%3Cpath d='M12 3l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.5 6.8 19l1-5.8-4.2-4.1 5.8-.8z' fill='%233a2400'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- inline icon sprite -->
+  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden" focusable="false">
+    <symbol id="i-star" viewBox="0 0 24 24">
+      <path d="M12 1.8l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.6 5.8 20.9 7 14l-5-4.9 6.9-1z"/>
+    </symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24">
+      <path d="M21 13.2A9 9 0 1 1 10.8 3a7.2 7.2 0 0 0 10.2 10.2z"/>
+    </symbol>
+    <symbol id="i-diamond" viewBox="0 0 24 24">
+      <path d="M6 3h12l3.4 5.4L12 22 2.6 8.4z"/>
+      <path d="M6 3l1.6 5.4h8.8L18 3M2.6 8.4h18.8" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="1.1"/>
+    </symbol>
+    <symbol id="i-scoin" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 6.1l1.6 3.4 3.7.4-2.8 2.5.8 3.7L12 14.6 8.7 16.5l.8-3.7-2.8-2.5 3.7-.4z" fill="rgba(0,0,0,.32)"/>
+    </symbol>
+    <symbol id="i-ucoin" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+      <circle cx="12" cy="12" r="4.6" fill="rgba(0,0,0,.28)"/>
+    </symbol>
+    <symbol id="i-demon" viewBox="0 0 24 24">
+      <path d="M3 6l3 2c1.6-1.2 3.7-2 6-2s4.4.8 6 2l3-2-1.6 9.2A8 7 0 0 1 4.6 15.2z"/>
+      <circle cx="9" cy="12" r="1.5" fill="rgba(0,0,0,.5)"/>
+      <circle cx="15" cy="12" r="1.5" fill="rgba(0,0,0,.5)"/>
+    </symbol>
+    <symbol id="i-cp" viewBox="0 0 24 24">
+      <path d="M12 2c.5 4.6 1.4 5.5 6 6-4.6.5-5.5 1.4-6 6-.5-4.6-1.4-5.5-6-6 4.6-.5 5.5-1.4 6-6z"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24">
+      <path fill-rule="evenodd" d="M10 3a7 7 0 0 1 5.3 11.6l4.05 4.05a1 1 0 0 1-1.4 1.4l-4.05-4.05A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/>
+    </symbol>
+  </svg>
+
+  <div class="wrap">
+    <header class="masthead">
+      <div class="logo-cube"><svg class="icon"><use href="#i-star"></use></svg></div>
+      <h1 class="title">Total <span class="accent">Star</span> Meetup</h1>
+      <p class="tagline">Add Geometry Dash players and tally the whole squad's combined stats.</p>
+    </header>
+
+    <form id="add-form" class="panel adder" autocomplete="off">
+      <div class="adder__row">
+        <label class="field">
+          <svg class="icon"><use href="#i-search"></use></svg>
+          <input id="username" name="username" type="text" inputmode="text"
+                 placeholder="Type a GD username…" aria-label="Geometry Dash username" spellcheck="false" />
+        </label>
+        <button class="btn btn--go" type="submit">Add player</button>
+      </div>
+      <p class="hint">Tip: paste several names separated by commas or new lines to add a whole group at once.</p>
+    </form>
+
+    <section class="panel scoreboard" aria-label="Combined totals for the group">
+      <div class="scoreboard__head">
+        <h2 class="scoreboard__title">Combined Total</h2>
+        <div class="controls">
+          <span id="player-count" aria-live="off">0 players</span>
+          <button id="refresh-btn" class="btn btn--ghost" type="button" disabled>Refresh</button>
+          <button id="clear-btn" class="btn btn--ghost" type="button" disabled>Clear</button>
+        </div>
+      </div>
+      <div id="totals" class="tiles"></div>
+    </section>
+
+    <h2 class="scoreboard__title only-players" style="margin:0 4px 12px">The Squad</h2>
+    <div id="roster" class="roster"></div>
+
+    <section id="empty" class="panel empty">
+      <div class="empty__cube"></div>
+      <h2>No players yet</h2>
+      <p>Type a Geometry Dash username above to start the meetup. Try one of these:</p>
+      <div id="examples" class="examples"></div>
+    </section>
+
+    <footer class="footer">
+      Player stats via <a href="https://gdbrowser.com" target="_blank" rel="noopener">GDBrowser</a>
+      by <a href="https://gdcolon.com" target="_blank" rel="noopener">GDColon</a>.
+      Geometry Dash © RobTop Games. Unofficial fan project — no affiliation.
+    </footer>
+  </div>
+
+  <div id="live" class="sr-only" aria-live="polite"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/gd-api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
