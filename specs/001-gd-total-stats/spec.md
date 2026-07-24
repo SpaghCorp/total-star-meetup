@@ -109,6 +109,13 @@ without re-fetching (served from cache); use a Refresh action to force fresh dat
   from mobile to desktop.
 - **FR-013**: The system MUST visibly credit GDColon / GDBrowser as the data source and link to it.
 - **FR-014**: The system MUST be deployable as static files to GitHub Pages with no backend.
+- **FR-015**: Users MUST be able to share the current group via a URL. A **Share** button copies a
+  link that encodes the roster as `?players=name1,name2,…`; the URL stays in sync as the group
+  changes, and opening such a link loads that exact group.
+- **FR-016**: The system MUST order the player cards by ranking — players with a global rank first
+  (best/lowest rank first), then unranked players by stars (descending). Ordering never affects totals.
+- **FR-017**: Clicking a player's username MUST open that player's GDBrowser profile
+  (`/u/{username}`) in a new browser tab.
 
 ### Key Entities
 

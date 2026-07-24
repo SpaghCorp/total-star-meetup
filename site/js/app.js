@@ -53,6 +53,7 @@
       var inputs = roster.map(function (e) { return e.input; });
       localStorage.setItem(cfg.STORAGE.roster, JSON.stringify(inputs));
     } catch (e) { /* ignore */ }
+    updateUrl(); // keep the shareable URL in sync with the group
   }
 
   function loadSavedInputs() {
@@ -62,6 +63,67 @@
       var arr = JSON.parse(raw);
       return Array.isArray(arr) ? arr.filter(function (x) { return typeof x === 'string'; }) : [];
     } catch (e) { return []; }
+  }
+
+  /* ---------- share via URL ---------- */
+  function getShareUrl() {
+    var base = location.origin + location.pathname;
+    if (!roster.length) return base;
+    return base + '?players=' + roster.map(function (e) { return encodeURIComponent(e.input); }).join(',');
+  }
+
+  function parsePlayersFromUrl() {
+    var m = location.search.match(/[?&]players=([^&]*)/);
+    if (!m) return [];
+    return m[1].split(',').map(function (s) {
+      try { return decodeURIComponent(s.replace(/\+/g, '%20')).trim(); } catch (e) { return s.trim(); }
+    }).filter(function (s) { return s.length > 0; });
+  }
+
+  function updateUrl() {
+    try { window.history.replaceState(null, '', getShareUrl()); } catch (e) { /* history unavailable */ }
+  }
+
+  function legacyCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacyCopy(text); });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+
+  var shareTimer = null;
+  function share() {
+    if (!roster.length) return;
+    var url = getShareUrl();
+    updateUrl();
+    var label = refs.shareBtn.querySelector('.btn__label') || refs.shareBtn;
+    copyText(url).then(function (ok) {
+      if (ok) {
+        label.textContent = 'Copied!';
+        refs.shareBtn.classList.add('is-copied');
+        announce('Share link copied to clipboard.');
+        if (shareTimer) clearTimeout(shareTimer);
+        shareTimer = setTimeout(function () {
+          label.textContent = 'Share';
+          refs.shareBtn.classList.remove('is-copied');
+        }, 1600);
+      } else {
+        announce('Copy this share link: ' + url);
+        window.prompt('Copy this share link:', url);
+      }
+    });
   }
 
   /* ---------- announcements (a11y live region) ---------- */
@@ -180,6 +242,21 @@
     return sums;
   }
 
+  // Display order: loaded players ranked by global rank (best first, unranked last),
+  // ties broken by stars; still-loading / errored entries sink to the bottom.
+  function statOf(p, k) { var v = p && p[k]; return (typeof v === 'number' && isFinite(v)) ? v : 0; }
+  function rankKey(p) { var r = p && p.rank; return (typeof r === 'number' && r > 0) ? r : Infinity; }
+  function orderedForDisplay() {
+    return roster.slice().sort(function (a, b) {
+      var aok = a.status === 'ok', bok = b.status === 'ok';
+      if (aok !== bok) return aok ? -1 : 1;
+      if (!aok) return 0;
+      var ra = rankKey(a.profile), rb = rankKey(b.profile);
+      if (ra !== rb) return ra < rb ? -1 : 1; // better global rank first (avoids Infinity−Infinity NaN)
+      return statOf(b.profile, 'stars') - statOf(a.profile, 'stars'); // tie-break: more stars first
+    });
+  }
+
   /* ---------- rendering ---------- */
   function render() {
     renderTotals();
@@ -195,6 +272,7 @@
     var busy = roster.length > 0;
     refs.clearBtn.disabled = !busy;
     refs.refreshBtn.disabled = !busy;
+    refs.shareBtn.disabled = !busy;
     document.body.classList.toggle('has-players', roster.length > 0);
   }
 
@@ -223,7 +301,7 @@
     refs.empty.hidden = true;
 
     var frag = document.createDocumentFragment();
-    roster.forEach(function (e) { frag.appendChild(renderCard(e)); });
+    orderedForDisplay().forEach(function (e) { frag.appendChild(renderCard(e)); });
     refs.roster.innerHTML = '';
     refs.roster.appendChild(frag);
   }
@@ -283,7 +361,9 @@
       '<div class="card__head">' +
         cube(p) +
         '<div class="card__id">' +
-          '<span class="card__name">' + esc(p.username || entry.input) + '</span>' +
+          '<a class="card__name" href="' + esc(cfg.API_BASE + '/u/' + encodeURIComponent(p.username || entry.input)) +
+            '" target="_blank" rel="noopener" title="View ' + esc(p.username || entry.input) + ' on GDBrowser">' +
+            esc(p.username || entry.input) + '</a>' +
           '<span class="card__sub">' + esc(rankTxt) + '</span>' +
         '</div>' +
       '</div>' +
@@ -311,6 +391,7 @@
 
     refs.clearBtn.addEventListener('click', clearAll);
     refs.refreshBtn.addEventListener('click', refreshAll);
+    refs.shareBtn.addEventListener('click', share);
 
     // Delegated clicks for dynamic content.
     document.addEventListener('click', function (ev) {
@@ -347,20 +428,23 @@
       count: $('#player-count'),
       clearBtn: $('#clear-btn'),
       refreshBtn: $('#refresh-btn'),
+      shareBtn: $('#share-btn'),
       live: $('#live'),
     };
 
     renderExamples();
     wire();
 
-    // Restore a previously saved group (served from cache when fresh).
-    var saved = loadSavedInputs();
-    if (saved.length) {
-      saved.forEach(function (name) {
+    // A shared ?players=… link wins over the locally saved group.
+    var initial = parsePlayersFromUrl();
+    if (!initial.length) initial = loadSavedInputs();
+    if (initial.length) {
+      initial.forEach(function (name) {
         var key = norm(name);
         if (!hasEntry(key)) roster.push({ key: key, input: name, status: 'loading' });
       });
       render();
+      saveRoster(); // reconcile storage + URL with the group we loaded
       processQueue();
     } else {
       render();

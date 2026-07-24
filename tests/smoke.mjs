@@ -104,6 +104,17 @@ async function main() {
     assert((await page.locator('.card--ok').count()) === 2, 'Two player cards rendered');
     assert((await page.locator('.card[data-key="viprin"] .cube.is-glow').count()) === 1, "Viprin's cube shows glow");
 
+    // sorting: both are unranked, so the tie-breaks by stars desc → Viprin (200) above RobTop (100)
+    assert(((await page.locator('.card--ok .card__name').first().textContent()) || '').trim() === 'Viprin',
+      'Squad sorted by ranking (Viprin above RobTop on stars)');
+    // username links to the player's GDBrowser profile
+    const vHref = await page.getAttribute('.card[data-key="viprin"] a.card__name', 'href');
+    assert(!!vHref && vHref.indexOf('gdbrowser.com/u/Viprin') !== -1, 'Username links to the GDBrowser profile');
+    // roster is encoded into the shareable URL
+    const shared = decodeURIComponent(page.url());
+    assert(shared.indexOf('players=') !== -1 && shared.indexOf('robtop') !== -1 && shared.indexOf('viprin') !== -1,
+      'Roster is encoded in the URL for sharing (?players=…)');
+
     // --- 2. unknown username: not-found card, totals unchanged ---
     await page.fill('#username', 'definitelynotarealplayer_zzz');
     await page.press('#username', 'Enter');

@@ -51,6 +51,12 @@
     <symbol id="i-search" viewBox="0 0 24 24">
       <path fill-rule="evenodd" d="M10 3a7 7 0 0 1 5.3 11.6l4.05 4.05a1 1 0 0 1-1.4 1.4l-4.05-4.05A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/>
     </symbol>
+    <symbol id="i-share" viewBox="0 0 24 24">
+      <circle cx="6" cy="12" r="2.7"/>
+      <circle cx="17.5" cy="5.5" r="2.7"/>
+      <circle cx="17.5" cy="18.5" r="2.7"/>
+      <path d="M8.3 10.8l7-4M8.3 13.2l7 4" fill="none" stroke="currentColor" stroke-width="1.9"/>
+    </symbol>
   </svg>
 
   <div class="wrap">
@@ -77,6 +83,9 @@
         <h2 class="scoreboard__title">Combined Total</h2>
         <div class="controls">
           <span id="player-count" aria-live="off">0 players</span>
+          <button id="share-btn" class="btn btn--ghost" type="button" disabled>
+            <svg class="icon" aria-hidden="true"><use href="#i-share"></use></svg><span class="btn__label">Share</span>
+          </button>
           <button id="refresh-btn" class="btn btn--ghost" type="button" disabled>Refresh</button>
           <button id="clear-btn" class="btn btn--ghost" type="button" disabled>Clear</button>
         </div>

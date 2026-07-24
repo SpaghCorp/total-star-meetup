@@ -54,6 +54,15 @@ Tasks are grouped by phase and user story. `[P]` marks tasks that can run in par
 - [x] T015 Responsive + a11y polish: keyboard operable, ARIA live region for totals, mobile
   layout down to ~360px (FR-012).
 
+## Phase 7 — Post-launch enhancements
+
+- [x] T016 [US3] Shareable URL: encode the roster as `?players=…`, keep it in sync via
+  `history.replaceState`, load it on startup (URL wins over saved roster), and add a **Share**
+  button that copies the link with clipboard + legacy fallback (FR-015).
+- [x] T017 [US2] Sort the squad by global rank (best first, unranked last), tie-broken by stars
+  descending; display-only, totals unaffected (FR-016).
+- [x] T018 [US2] Link each username to its GDBrowser profile (`/u/{username}`) in a new tab (FR-017).
+
 ## Dependencies
 
 - T002 → T003. T001/T004 → everything visual. US1 (T005–T007) is the MVP and must land first.
